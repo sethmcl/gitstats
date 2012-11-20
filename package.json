@@ -1,0 +1,20 @@
+{
+  "name": "gitstats",
+  "version": "0.0.0",
+  "description": "Simple stats about your git repos",
+  "main": "GitStats.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node bin/gitstats"
+  },
+  "bin": "./bin/gitstats",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sethmcl/gitstats.git"
+  },
+  "dependencies": {
+    "github": "0.1.7"
+  },
+  "author": "Seth McLaughlin",
+  "license": "Apache 2.0"
+}

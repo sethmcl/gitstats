@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+var GitStats = require('../GitStats'),
+    app      = new GitStats();
+
+app.run(process.argv);
