@@ -1,7 +1,8 @@
 /**
  * @author Seth McLaughlin
  */
-var GitHubApi = require('github');
+var GitHubApi = require('github'),
+    date = require('./date');
 
 /**
  * Application object
@@ -21,7 +22,7 @@ GitStats.prototype.run = function(args) {
  */
 GitStats.prototype.shutdown = function() {
   throw new Error('Not implemented');
-}
+};
 
 /**
  * Initialize application
@@ -30,13 +31,18 @@ GitStats.prototype.shutdown = function() {
 GitStats.prototype.init = function (args) {
   var client,
       user = args[2],
-      repo = args[3];
+      repo = args[3],
+      days = args[4] || 7,
+      fmt  = args[5] || args[4];
 
   client = new GitHubApi({
     version: '3.0.0'
   });
 
-  var since = new Date(new Date() - (1000 * 60 * 60 * 24 * 7));
+  var format = require('./' + fmt).formatIssue;
+
+  var since = new Date(new Date() - (1000 * 60 * 60 * 24 * days));
+  var issueCount = 0;
   client.issues.repoIssues({
     filter: 'all',
     user: user,
@@ -46,14 +52,27 @@ GitStats.prototype.init = function (args) {
     direction: 'asc',
     since: since.toISOString()
   }, function(err, res) {
-    console.log(repo, 'issues closed since', since.toISOString(), '(' + res.length + ')');
-    res.forEach(function(issue) {
-      if(issue.pull_request.diff_url == null) {
-        console.log('[#' + issue.number + '](' + issue.url + ')', issue.title);
+    res.filter(function(issue) {
+      return new Date(issue.closed_at) >= since;
+    })
+    .map(function(issue) {
+      return format(issue);
+    })
+    .sort(function(a, b) {
+      if(a.str.indexOf('(PR)') !== -1) {
+        return 1;
+      } else if(b.str.indexOf('(PR') !== -1) {
+        return -1;
       } else {
-        console.log('[PULL-REQUEST #' + issue.number + '](' + issue.url + ')', issue.title);
+        return a.issue.number - b.issue.number;
       }
+    })
+    .forEach(function(line) {
+      console.log(line.str);
+      issueCount++;
     });
+
+    console.log(repo, 'issues closed since', since.toISOString(), '(' + issueCount + ')');
   });
 
 };
